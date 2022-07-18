@@ -67,53 +67,59 @@ class App extends Component {
   }
 
   onButtonSubmit = () => {
-    this.setState({ imageUrl: this.state.input})
-    const IMAGE_URL = this.state.input;
-    const raw = JSON.stringify({
-        "user_app_id": {
-            "user_id": USER_ID,
-            "app_id": APP_ID
-        },
-        "inputs": [
-            {
-                "data": {
-                    "image": {
-                        "url": IMAGE_URL
+    var input = document.getElementById("inputImageF")
+    if (!input.value.length) {
+            alert('empty');
+            return;
+        } else {
+        this.setState({ imageUrl: this.state.input})
+        const IMAGE_URL = this.state.input;
+        const raw = JSON.stringify({
+            "user_app_id": {
+                "user_id": USER_ID,
+                "app_id": APP_ID
+            },
+            "inputs": [
+                {
+                    "data": {
+                        "image": {
+                            "url": IMAGE_URL
+                        }
                     }
                 }
-            }
-        ]
-    });
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Key ' + PAT,
-  
-        },
-      body: raw
-      }; 
+            ]
+        });
+        const requestOptions = {
+          method: 'POST',
+          headers: {
+              'Accept': 'application/json',
+              'Authorization': 'Key ' + PAT,
+      
+            },
+          body: raw
+          }; 
 
-    fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/outputs", requestOptions)
-    .then(response => response.json())
-    .then(result => {
-      if (result) {
-        fetch('https://afro-thunder.herokuapp.com/image' , {
-          method: 'put',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            id: this.state.user.id
-      })
-      })
+        fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/outputs", requestOptions)
         .then(response => response.json())
-        .then(count => {
-          this.setState(Object.assign(this.state.user, {entries: count}))
+        .then(result => {
+          if (result) {
+            fetch('https://afro-thunder.herokuapp.com/image' , {
+              method: 'put',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                id: this.state.user.id
+          })
+          })
+            .then(response => response.json())
+            .then(count => {
+              this.setState(Object.assign(this.state.user, {entries: count}))
+            })
+          }
+          this.displayFaceBox(this.calculateFaceLocation(result))
         })
+        .catch(error => console.log('error', error));
       }
-      this.displayFaceBox(this.calculateFaceLocation(result))
-    })
-    .catch(error => console.log('error', error));
-  }
+    }
 
   onRouteChange = (route) => {
     if (route === 'signin' || route === 'signout') {
