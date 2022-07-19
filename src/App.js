@@ -100,7 +100,10 @@ class App extends Component {
           }; 
 
         fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/outputs", requestOptions)
-        .then(response => response.json())
+        .then(response => { if (!response.ok) {
+          throw new Error("HTTP status " + response.status);
+        }
+          return response.json()})
         .then(result => {
           if (result) {
             fetch('https://afro-thunder.herokuapp.com/image' , {
