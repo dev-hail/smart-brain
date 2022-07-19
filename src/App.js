@@ -101,6 +101,7 @@ class App extends Component {
 
         fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/outputs", requestOptions)
         .then(response => { if (!response.ok) {
+          alert("please input a valid image link")
           throw new Error("HTTP status " + response.status);
         }
           return response.json()})
