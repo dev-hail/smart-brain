@@ -28,9 +28,11 @@ class SignIn extends React.Component {
 		})
 		.then(response => response.json())
 		.then(user => {
-	        if(user.id){ // does the user exist? Did we receive a user with a property of id?
+	        if(user.id){ // does the user exist?
 	          this.props.loadUser(user);
 	          this.props.onRouteChange('home');
+        } else {
+        	alert("username or password is wrong")
         }
 		})
 	}
@@ -45,9 +47,8 @@ class SignIn extends React.Component {
 				      <legend className="f1 fw6 ph0 mh0">Sign In</legend>
 				      <div className="mt3">
 				        <label className="db fw6 lh-copy f6" htmlFor="email-address">Email</label>
-				        <input 
+				        <input type="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2, 4}$"
 				        className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" 
-				        type="email" 
 				        name="email-address" id="email-address"
 				        onChange={this.onEmailChange}
 				        />

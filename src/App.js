@@ -16,7 +16,7 @@ const MODEL_ID = 'd02b4508df58432fbb84e800597b8959';
 const initialState = {
       input:'',
       imageUrl:'',
-      box:{},
+      boxes:[],
       route:'signin',
       isSignedIn: false,
       user: {
@@ -45,20 +45,22 @@ class App extends Component {
   }
 
   calculateFaceLocation = (data) => {
-    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
     const image = document.getElementById('inputImage');
     const width = Number(image.width);
     const height = Number(image.height);
-    return {
-      leftCol: clarifaiFace.left_col * width,
-      topRow: clarifaiFace.top_row * height,
-      rightCol: width - (clarifaiFace.right_col * width),
-      bottomRow: height - (clarifaiFace.bottom_row * height)
-    }
+    return data.outputs[0].data.regions.map(face => {
+      const clarifaiFace = face.region_info.bounding_box;
+      return {
+        leftCol: clarifaiFace.left_col * width,
+        topRow: clarifaiFace.top_row * height,
+        rightCol: width - (clarifaiFace.right_col * width),
+        bottomRow: height - (clarifaiFace.bottom_row * height)
+      }
+    });
   }
 
-  displayFaceBox = (box) => {
-    this.setState({box: box});
+  displayFaceBox = (boxes) => {
+    this.setState({boxes: boxes});
   }
 
 
@@ -69,7 +71,7 @@ class App extends Component {
   onButtonSubmit = () => {
     var input = document.getElementById("inputImageF")
     if (!input.value.length) {
-            alert('empty');
+            alert('empty input');
             return;
         } else {
         this.setState({ imageUrl: this.state.input})
@@ -136,7 +138,7 @@ class App extends Component {
   }
 
   render() {
-    const {isSignedIn, box, route, imageUrl} = this.state;
+    const {isSignedIn, boxes, route, imageUrl} = this.state;
     return (
       <div className="App">
           <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange} />
@@ -145,7 +147,7 @@ class App extends Component {
                 <Logo />
                 <Rank name={this.state.user.name} entries={this.state.user.entries}/>
                 <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit}/>
-                <FaceRecognition box={box} imageUrl={imageUrl}/>
+                <FaceRecognition boxes={boxes} imageUrl={imageUrl}/>
             </div>
             :(
               route === 'signin'
