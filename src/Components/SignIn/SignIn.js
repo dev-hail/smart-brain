@@ -47,7 +47,7 @@ class SignIn extends React.Component {
 				      <legend className="f1 fw6 ph0 mh0">Sign In</legend>
 				      <div className="mt3">
 				        <label className="db fw6 lh-copy f6" htmlFor="email-address">Email</label>
-				        <input type="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2, 4}$"
+				        <input type="email"
 				        className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" 
 				        name="email-address" id="email-address"
 				        onChange={this.onEmailChange}
