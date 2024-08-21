@@ -72,68 +72,73 @@ class App extends Component {
 
   async fetchUrl(url) {
       let response = await fetch(url);
-      if (response.ok) 
+      console.log(response.headers.get("content-type"))
+      if (response.ok) {
+        
         return true
+      }
+        
       return false
   }
-
 
   onButtonSubmit = () => {
     var input = document.getElementById("inputImageF")
     var response = this.fetchUrl(input)
     console.log(response)
     if (!input.value.length || !response) {
-            alert('Fetch Failed. Check URL again.');
-            return;
-        } else {
-          this.setState({imageUrl: this.state.input});
-          const IMAGE_URL = this.state.input
-          const raw = JSON.stringify({
-               "user_app_id": {
-                   "user_id": USER_ID,
-                   "app_id": APP_ID
-               },
-               "inputs": [
-                   {
-                       "data": {
-                           "image": {
-                               "url": IMAGE_URL
-                           }
-                       }
-                   }
-                ]
-            });
-            const requestOptions = {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': 'Key ' + PAT
-                },
-                body: raw
-            };
-            fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/versions/" + MODEL_VERSION_ID + "/outputs", requestOptions)
-                .then(response => response.json())
-                .then(response => {
-                  if (response) {
-                    fetch('https://smart-brain-api-phi.vercel.app/image', {
-                      method: 'put',
-                      headers: {'Content-Type': 'application/json'},
-                      body: JSON.stringify({
-                        id: this.state.user.id
-                      })
-                    })
-                      .then(response => response.json())
-                      .then(count => {
-                        this.setState(Object.assign(this.state.user, { entries: count}))
-                      })
-                      .catch(console.log)
-          
-                  }
-                  this.displayFaceBox(this.calculateFaceLocation(response))
+        alert('Fetch Failed. Check URL again.');
+        return;
+    } else {
+      this.setState({imageUrl: this.state.input});
+      const IMAGE_URL = this.state.input
+      const raw = JSON.stringify({
+            "user_app_id": {
+                "user_id": USER_ID,
+                "app_id": APP_ID
+            },
+            "inputs": [
+                {
+                    "data": {
+                        "image": {
+                            "url": IMAGE_URL
+                        }
+                    }
+                }
+            ]
+        });
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Key ' + PAT
+            },
+            body: raw
+        };
+        fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/versions/" + MODEL_VERSION_ID + "/outputs", requestOptions)
+            .then(response => response.json())
+            .then(response => {
+              try  {
+                this.displayFaceBox(this.calculateFaceLocation(response))
+              } catch {
+                alert("Fetch Failed. Check URL Again.")
+                return false
+              }
+              fetch('https://smart-brain-api-phi.vercel.app/image', {
+                method: 'put',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                  id: this.state.user.id
                 })
-                .catch(error => console.log('error', error));
-          }
-        }
+              })
+                .then(response => response.json())
+                .then(count => {
+                  this.setState(Object.assign(this.state.user, { entries: count}))
+                })
+                .catch(console.log)
+            })
+            .catch(error => console.log('error', error));
+      }
+    }
 
   onRouteChange = (route) => {
     if (route === 'signin' || route === 'signout') {
