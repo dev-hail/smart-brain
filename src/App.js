@@ -8,10 +8,12 @@ import SignIn from './Components/SignIn/SignIn.js'
 import Register from './Components/Register/Register.js'
 import './App.css';
 
-const USER_ID = 'hail';
-const PAT = 'e8cde8984ebc4ccd89894929192334bb';
-const APP_ID = '5353c5790f224a49820b8dd422499bb1';
-const MODEL_ID = 'd02b4508df58432fbb84e800597b8959';
+const USER_ID = 'clarifai';
+const PAT = '16e186681b3a414a8b3f6391b9be3144';
+const APP_ID = 'main';
+const MODEL_ID = 'face-detection';
+const MODEL_VERSION_ID = '6dc7e46bc9124c5c8824be4822abe105';
+
 
 const initialState = {
       input:'',
@@ -68,64 +70,70 @@ class App extends Component {
     this.setState({input: event.target.value});
   }
 
+  async fetchUrl(url) {
+      let response = await fetch(url);
+      if (response.ok) 
+        return true
+      return false
+  }
+
+
   onButtonSubmit = () => {
     var input = document.getElementById("inputImageF")
-    if (!input.value.length) {
-            alert('empty input');
+    var response = this.fetchUrl(input)
+    console.log(response)
+    if (!input.value.length || !response) {
+            alert('Fetch Failed. Check URL again.');
             return;
         } else {
-        this.setState({ imageUrl: this.state.input})
-        const IMAGE_URL = this.state.input;
-        const raw = JSON.stringify({
-            "user_app_id": {
-                "user_id": USER_ID,
-                "app_id": APP_ID
-            },
-            "inputs": [
-                {
-                    "data": {
-                        "image": {
-                            "url": IMAGE_URL
-                        }
-                    }
-                }
-            ]
-        });
-        const requestOptions = {
-          method: 'POST',
-          headers: {
-              'Accept': 'application/json',
-              'Authorization': 'Key ' + PAT,
-      
-            },
-          body: raw
-          }; 
-
-        fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/outputs", requestOptions)
-        .then(response => { if (!response.ok) {
-          alert("please input a valid image link")
-          throw new Error("HTTP status " + response.status);
-        }
-          return response.json()})
-        .then(result => {
-          if (result) {
-            fetch('https://smart-brain-api-phi.vercel.app/image' , {
-              method: 'put',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({
-                id: this.state.user.id
-          })
-          })
-            .then(response => response.json())
-            .then(count => {
-              this.setState(Object.assign(this.state.user, {entries: count}))
-            })
+          this.setState({imageUrl: this.state.input});
+          const IMAGE_URL = this.state.input
+          const raw = JSON.stringify({
+               "user_app_id": {
+                   "user_id": USER_ID,
+                   "app_id": APP_ID
+               },
+               "inputs": [
+                   {
+                       "data": {
+                           "image": {
+                               "url": IMAGE_URL
+                           }
+                       }
+                   }
+                ]
+            });
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Key ' + PAT
+                },
+                body: raw
+            };
+            fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/versions/" + MODEL_VERSION_ID + "/outputs", requestOptions)
+                .then(response => response.json())
+                .then(response => {
+                  if (response) {
+                    fetch('https://smart-brain-api-phi.vercel.app/image', {
+                      method: 'put',
+                      headers: {'Content-Type': 'application/json'},
+                      body: JSON.stringify({
+                        id: this.state.user.id
+                      })
+                    })
+                      .then(response => response.json())
+                      .then(count => {
+                        this.setState(Object.assign(this.state.user, { entries: count}))
+                      })
+                      .catch(console.log)
+          
+                  }
+                  this.displayFaceBox(this.calculateFaceLocation(response))
+                })
+                .catch(error => console.log('error', error));
           }
-          this.displayFaceBox(this.calculateFaceLocation(result))
-        })
-        .catch(error => console.log('error', error));
-      }
-    }
+        }
 
   onRouteChange = (route) => {
     if (route === 'signin' || route === 'signout') {
@@ -134,7 +142,6 @@ class App extends Component {
       this.setState({isSignedIn:true})
     }
     this.setState({route: route})
-
   }
 
   render() {
