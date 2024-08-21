@@ -18,22 +18,25 @@ class SignIn extends React.Component {
 	}
 
 	onSubmitSignIn = () => {
+		const password = this.state.signInPassword || ""; 
+
 		fetch('https://smart-brain-api-phi.vercel.app/signin', {
 			method: 'post',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify({
 				email: this.state.signInEmail,
-				password: this.state.signInPassword
+				password: password
 			})
 		})
-		.then(response => response.json())
+		.then(response => {console.log(response); return response.json()})
 		.then(user => {
+			user = user[0]
 	        if(user.id){ // does the user exist?
 	          this.props.loadUser(user);
 	          this.props.onRouteChange('home');
-        } else {
-        	alert("username or password is wrong")
-        }
+			} else {
+				alert("username or password is wrong")
+			}
 		})
 	}
 
@@ -60,6 +63,7 @@ class SignIn extends React.Component {
 				        type="password" name="password"  
 				        id="password"
 				        onChange={this.onPasswordChange}
+						defaultValue={""}
 				        />
 				      </div>
 				    </fieldset>
